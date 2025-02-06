@@ -26,6 +26,7 @@ from collections import Counter, defaultdict, namedtuple
 
 import docopt
 import numpy as np
+import joblib
 
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.ensemble import RandomForestClassifier
@@ -35,7 +36,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 from sklearn.metrics import classification_report
-from sklearn.externals import joblib
 
 np.random.seed(0)
 random.seed(0)

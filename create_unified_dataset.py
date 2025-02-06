@@ -591,23 +591,42 @@ def extract_ssec(folder):
 
 
 def extract_fb_va(folder):
-    with open(folder + "/dataset-fb-valence-arousal-anon.csv") as f:
+    filepath = folder + "/dataset-fb-valence-arousal-anon.csv"
+    
+    # 파일 내용 미리보기로 형식 확인
+    with open(filepath, 'r') as f:
+        first_line = f.readline().strip()
+        if first_line.startswith('<!doctype html'):
+            print(f"Error: File {filepath} appears to be HTML instead of CSV")
+            return
+        f.seek(0)  # 파일 포인터를 다시 처음으로
+        
         reader = csv.DictReader(f)
+        print("Available columns:", reader.fieldnames)
+        
         for row in reader:
-            text = row["Anonymized Message"]
-            arousal = (int(row["Arousal1"]) + int(row["Arousal2"])) / 2
-            valence = (int(row["Valence1"]) + int(row["Valence2"])) / 2
-            yield {
-                "source": "fb-valence-arousal-anon",
-                "text": text,
-                "emotions": emotion_mapping({}, []),
-                "VAD": {
-                    "valence": valence,
-                    "arousal": arousal,
-                    "dominance": None,
-                },
-                "split": None,
-            }
+            try:
+                # 'text' 또는 'message' 컬럼을 찾아봅니다
+                text = row.get("text") or row.get("message") or row.get("Message") or row.get("content")
+                if text is None:
+                    continue
+                    
+                arousal = (float(row.get("Arousal1", 0)) + float(row.get("Arousal2", 0))) / 2
+                valence = (float(row.get("Valence1", 0)) + float(row.get("Valence2", 0))) / 2
+                
+                yield {
+                    "source": "fb-valence-arousal-anon",
+                    "text": text,
+                    "emotions": emotion_mapping({}, []),
+                    "VAD": {
+                        "valence": valence,
+                        "arousal": arousal, 
+                        "dominance": None,
+                    },
+                    "split": None,
+                }
+            except (KeyError, ValueError) as e:
+                continue
 
 
 def extract_EGK(folder):
